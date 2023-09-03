@@ -33,6 +33,7 @@ class Player(Sprite):
 
         self.attacking = False
         self.cooldowns = self.init_cooldowns()
+        self.bullet_shot = False
 
     def import_assets(self) -> dict[str, list[Surface]]:
         path = "graphics/player"
@@ -88,17 +89,40 @@ class Player(Sprite):
         self.hitbox.centery = self.rect.centery
         bus.emit("player:move", axis="vertical", direction=self.direction)
 
+    def __get_shoot_direction(self) -> Vector2:
+        direction = Vector2(0, 0)
+
+        match self.status.split("_")[0]:
+            case "up":
+                direction = Vector2(0, -1)
+            case "down":
+                direction = Vector2(0, 1)
+            case "left":
+                direction = Vector2(-1, 0)
+            case "right":
+                direction = Vector2(1, 0)
+
+        return direction
+
     def shoot(self) -> None:
         if not self.cooldowns["attack"].active:
             self.status = f"{self.status.split('_')[0]}_attack"
             self.cooldowns["attack"].activate()
             self.attacking = True
-            bus.emit("player:attack", status=self.status)
+            self.bullet_shot = False
 
     def animate(self, dt) -> None:
         animations = self.assets[self.status]
 
         self.frame_index += self.animation_speed * dt
+
+        if int(self.frame_index) == 2 and self.attacking and not self.bullet_shot:
+            bullet_direction = self.__get_shoot_direction()
+            bullet_pos = self.rect.center + bullet_direction * 80
+
+            bus.emit("player:attack", position=bullet_pos, direction=bullet_direction)
+
+            self.bullet_shot = True
 
         if self.previous_status != self.status:
             self.previous_status = self.status

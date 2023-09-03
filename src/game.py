@@ -6,7 +6,7 @@ from pytmx.util_pygame import load_pygame
 from src.core.event_bus import bus
 from src.core.camera import Camera
 from src.sprites.player import Player
-from src.sprites.object import Obstacle
+from src.sprites.object import Bullet, Obstacle
 from settings import (
     TILE_SIZE,
     GAME_TITLE,
@@ -28,10 +28,18 @@ class Game:
         self.groups = self.init_groups()
         self.map = self.init_map()
 
+        self.bullet_surface = pygame.image.load(
+            "graphics/other/particle.png"
+        ).convert_alpha()
+
         self.register_events()
 
     def init_groups(self) -> dict[str, pygame.sprite.Group]:
-        return {"all_sprites": Camera(), "obstacles": pygame.sprite.Group()}
+        return {
+            "all_sprites": Camera(),
+            "obstacles": pygame.sprite.Group(),
+            "bullets": pygame.sprite.Group(),
+        }
 
     def __create_fence(self, tmx_map) -> None:
         for x, y, surface in tmx_map.get_layer_by_name("Fence").tiles():
@@ -100,8 +108,16 @@ class Game:
                 player.pos = pygame.math.Vector2(player.hitbox.center)
                 player.rect.center = player.hitbox.center
 
-    def create_bullet(self) -> None:
-        pass
+    def create_bullet(
+        self, position: tuple[int, int], direction: pygame.math.Vector2
+    ) -> None:
+        Bullet(
+            position,
+            direction,
+            self.bullet_surface,
+            self.groups["all_sprites"],
+            self.groups["bullets"],
+        )
 
     def run(self) -> None:
         while True:

@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 pygame = "==2.5.1"
 python-dotenv = "==1.0.0"
+pytmx = "==3.32"
 
 [dev-packages]
 

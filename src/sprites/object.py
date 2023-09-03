@@ -19,6 +19,8 @@ class Bullet(Sprite):
     ) -> None:
         super().__init__(*groups)
 
+        self.start_position = position
+
         self.image = surface
         self.rect = self.image.get_rect(center=position)
         self.mask = mask_from_surface(self.image)
@@ -30,3 +32,6 @@ class Bullet(Sprite):
     def update(self, dt: float) -> None:
         self.pos += self.direction * self.speed * dt
         self.rect.center = (round(self.pos.x), round(self.pos.y))
+
+        if (self.pos - self.start_position).magnitude() > 1500:
+            self.kill()

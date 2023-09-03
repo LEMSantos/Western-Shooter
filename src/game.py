@@ -5,6 +5,8 @@ from pytmx.util_pygame import load_pygame
 
 from src.core.event_bus import bus
 from src.core.camera import Camera
+from src.sprites.enemy import Cactus, Coffin
+from src.sprites.entity import Entity
 from src.sprites.player import Player
 from src.sprites.object import Bullet, Obstacle
 from settings import (
@@ -39,6 +41,7 @@ class Game:
             "all_sprites": Camera(),
             "obstacles": pygame.sprite.Group(),
             "bullets": pygame.sprite.Group(),
+            "enimies": pygame.sprite.Group(),
         }
 
     def __create_fence(self, tmx_map) -> None:
@@ -61,12 +64,24 @@ class Game:
 
     def __create_entities(self, tmx_map) -> dict[str, pygame.sprite.Sprite]:
         entities = {}
+        enemy_map = {
+            "Cactus": Cactus,
+            "Coffin": Coffin,
+        }
 
         for obj in tmx_map.get_layer_by_name("Entities"):
             if obj.name == "Player":
                 entities["player"] = Player(
                     (obj.x, obj.y),
                     self.groups["all_sprites"],
+                )
+
+            if obj.name in enemy_map:
+                enemy_map[obj.name](
+                    (obj.x, obj.y),
+                    entities["player"],
+                    self.groups["all_sprites"],
+                    self.groups["enimies"],
                 )
 
         return entities
@@ -87,26 +102,30 @@ class Game:
 
     def register_events(self) -> None:
         bus.on("player:move")(self.collision_player_obstacles)
+        bus.on("cactus:move")(self.collision_player_obstacles)
+        bus.on("coffin:move")(self.collision_player_obstacles)
+
         bus.on("player:attack")(self.create_bullet)
+        bus.on("cactus:attack")(self.create_bullet)
 
-    def collision_player_obstacles(self, axis: str, direction: pygame.math.Vector2):
-        player = self.map["player"]
-
+    def collision_player_obstacles(
+        self, entity: Entity, axis: str, direction: pygame.math.Vector2
+    ):
         for sprite in self.groups["obstacles"].sprites():
-            if sprite.hitbox.colliderect(player.hitbox):
+            if sprite.hitbox.colliderect(entity.hitbox):
                 if axis == "horizontal":
                     if direction.x > 0:
-                        player.hitbox.right = sprite.hitbox.left
+                        entity.hitbox.right = sprite.hitbox.left
                     else:
-                        player.hitbox.left = sprite.hitbox.right
+                        entity.hitbox.left = sprite.hitbox.right
                 else:
                     if direction.y < 0:
-                        player.hitbox.top = sprite.hitbox.bottom
+                        entity.hitbox.top = sprite.hitbox.bottom
                     else:
-                        player.hitbox.bottom = sprite.hitbox.top
+                        entity.hitbox.bottom = sprite.hitbox.top
 
-                player.pos = pygame.math.Vector2(player.hitbox.center)
-                player.rect.center = player.hitbox.center
+                entity.pos = pygame.math.Vector2(entity.hitbox.center)
+                entity.rect.center = entity.hitbox.center
 
     def create_bullet(
         self, position: tuple[int, int], direction: pygame.math.Vector2

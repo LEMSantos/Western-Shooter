@@ -32,6 +32,10 @@ class Entity(Sprite, metaclass=ABCMeta):
 
         self.attacking = False
         self.cooldowns = self.init_cooldowns()
+        self.health = 3
+
+    def damage(self) -> None:
+        self.health -= 1
 
     def import_assets(self, path: str) -> dict[str, list[Surface]]:
         animations = {}

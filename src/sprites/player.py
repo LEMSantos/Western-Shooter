@@ -1,3 +1,6 @@
+import sys
+
+from pygame import quit as quit_game
 from pygame.math import Vector2
 from pygame.key import get_pressed as get_pressed_key
 from pygame import K_LEFT, K_RIGHT, K_DOWN, K_UP, K_SPACE
@@ -73,6 +76,11 @@ class Player(Entity):
 
             self.bullet_shot = True
 
+    def check_death(self) -> None:
+        if self.health <= 0:
+            quit_game()
+            sys.exit()
+
     def update(self, dt: float) -> None:
         if not self.attacking:
             self.move_input()
@@ -83,3 +91,4 @@ class Player(Entity):
             timer.update()
 
         self.animate(dt)
+        self.check_death()

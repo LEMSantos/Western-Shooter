@@ -41,7 +41,7 @@ class Game:
             "all_sprites": Camera(),
             "obstacles": pygame.sprite.Group(),
             "bullets": pygame.sprite.Group(),
-            "enimies": pygame.sprite.Group(),
+            "enemies": pygame.sprite.Group(),
         }
 
     def __create_fence(self, tmx_map) -> None:
@@ -62,7 +62,7 @@ class Game:
                 self.groups["obstacles"],
             )
 
-    def __create_entities(self, tmx_map) -> dict[str, pygame.sprite.Sprite]:
+    def __create_entities(self, tmx_map) -> dict[str, Entity]:
         entities = {}
         enemy_map = {
             "Cactus": Cactus,
@@ -81,7 +81,7 @@ class Game:
                     (obj.x, obj.y),
                     entities["player"],
                     self.groups["all_sprites"],
-                    self.groups["enimies"],
+                    self.groups["enemies"],
                 )
 
         return entities
@@ -127,6 +127,23 @@ class Game:
                 entity.pos = pygame.math.Vector2(entity.hitbox.center)
                 entity.rect.center = entity.hitbox.center
 
+    def bullet_collision(self) -> None:
+        for bullet in self.groups["bullets"].sprites():
+            for obstacle in self.groups["obstacles"].sprites():
+                if pygame.sprite.collide_mask(bullet, obstacle):
+                    bullet.kill()
+                    continue
+
+            for enemy in self.groups["enemies"].sprites():
+                if pygame.sprite.collide_mask(bullet, enemy):
+                    enemy.damage()
+                    bullet.kill()
+                    continue
+
+            if pygame.sprite.collide_mask(bullet, self.map["player"]):
+                self.map["player"].damage()
+                bullet.kill()
+
     def create_bullet(
         self, position: tuple[int, int], direction: pygame.math.Vector2
     ) -> None:
@@ -144,6 +161,7 @@ class Game:
             dt = self.clock.tick() / 1000
 
             self.groups["all_sprites"].update(dt)
+            self.bullet_collision()
 
             self.screen.fill("black")
             self.groups["all_sprites"].custom_draw(self.screen, self.map["player"])

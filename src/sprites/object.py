@@ -27,7 +27,7 @@ class Bullet(Sprite):
 
         self.pos = Vector2(self.rect.center)
         self.direction = direction
-        self.speed = 500
+        self.speed = 400
 
     def update(self, dt: float) -> None:
         self.pos += self.direction * self.speed * dt

@@ -5,9 +5,9 @@ from pytmx.util_pygame import load_pygame
 
 from src.core.event_bus import bus
 from src.core.camera import Camera
-from src.sprites.enemy import Cactus, Coffin
 from src.sprites.entity import Entity
 from src.sprites.player import Player
+from src.sprites.enemy import Cactus, Coffin
 from src.sprites.object import Bullet, Obstacle
 from settings import (
     TILE_SIZE,
@@ -36,12 +36,30 @@ class Game:
 
         self.register_events()
 
+        self.sounds = self.init_sounds()
+        self.sounds["music"].play(-1)
+
     def init_groups(self) -> dict[str, pygame.sprite.Group]:
         return {
             "all_sprites": Camera(),
             "obstacles": pygame.sprite.Group(),
             "bullets": pygame.sprite.Group(),
             "enemies": pygame.sprite.Group(),
+        }
+
+    def init_sounds(self) -> dict[str, pygame.mixer.Sound]:
+        bullet_sound = pygame.mixer.Sound("sound/bullet.wav")
+        music_sound = pygame.mixer.Sound("sound/music.mp3")
+        hit_sound = pygame.mixer.Sound("sound/hit.mp3")
+
+        bullet_sound.set_volume(0.2)
+        music_sound.set_volume(0.1)
+        hit_sound.set_volume(0.2)
+
+        return {
+            "bullet": bullet_sound,
+            "music": music_sound,
+            "hit": hit_sound,
         }
 
     def __create_fence(self, tmx_map) -> None:
@@ -142,11 +160,13 @@ class Game:
 
             if pygame.sprite.collide_mask(bullet, self.map["player"]):
                 self.map["player"].damage()
+                self.sounds["hit"].play()
                 bullet.kill()
 
     def create_bullet(
         self, position: tuple[int, int], direction: pygame.math.Vector2
     ) -> None:
+        self.sounds["bullet"].play()
         Bullet(
             position,
             direction,

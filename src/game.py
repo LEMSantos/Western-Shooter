@@ -156,6 +156,7 @@ class Game:
                 if pygame.sprite.collide_mask(bullet, enemy):
                     enemy.damage()
                     bullet.kill()
+                    self.sounds["hit"].play()
                     continue
 
             if pygame.sprite.collide_mask(bullet, self.map["player"]):

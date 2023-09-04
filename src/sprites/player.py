@@ -15,9 +15,10 @@ class Player(Entity):
         super().__init__(position, "graphics/player", *groups)
 
         self.bullet_shot = False
+        self.health = 10
 
     def init_cooldowns(self) -> dict[str, Timer]:
-        return {"attack": Timer(1000)}
+        return {"attack": Timer(1000), "ivulnerable": Timer(300)}
 
     def move_input(self) -> None:
         keys_map = {
@@ -92,3 +93,4 @@ class Player(Entity):
 
         self.animate(dt)
         self.check_death()
+        self.blink()

@@ -1,10 +1,12 @@
 from abc import ABCMeta, abstractmethod
+from math import sin
 import os
 
 from pygame.math import Vector2
 from pygame.surface import Surface
 from pygame.sprite import Sprite
 from pygame.image import load as load_image
+from pygame.time import get_ticks as get_clock_ticks
 from pygame.mask import from_surface as mask_from_surface
 
 from src.core.timer import Timer
@@ -34,8 +36,22 @@ class Entity(Sprite, metaclass=ABCMeta):
         self.cooldowns = self.init_cooldowns()
         self.health = 3
 
+    def blink(self) -> None:
+        if self.cooldowns["ivulnerable"].active and self.weave_value():
+            mask = mask_from_surface(self.image)
+
+            white_surface = mask.to_surface()
+            white_surface.set_colorkey("black")
+
+            self.image = white_surface
+
+    def weave_value(self) -> float:
+        return sin(get_clock_ticks()) >= 0
+
     def damage(self) -> None:
-        self.health -= 1
+        if not self.cooldowns["ivulnerable"].active:
+            self.health -= 1
+            self.cooldowns["ivulnerable"].activate()
 
     def import_assets(self, path: str) -> dict[str, list[Surface]]:
         animations = {}

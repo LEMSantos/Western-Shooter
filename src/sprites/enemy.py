@@ -60,7 +60,7 @@ class Coffin(Entity, Monster):
         self.damage_done = False
 
     def init_cooldowns(self) -> dict[str, Timer]:
-        return {"attack": Timer(3000)}
+        return {"attack": Timer(3000), "ivulnerable": Timer(300)}
 
     def attack(self) -> None:
         distance, _ = self.get_player_distance_direction()
@@ -91,6 +91,7 @@ class Coffin(Entity, Monster):
 
         self.animate(dt)
         self.check_death()
+        self.blink()
 
 
 class Cactus(Entity, Monster):
@@ -108,7 +109,7 @@ class Cactus(Entity, Monster):
         self.bullet_shot = False
 
     def init_cooldowns(self) -> dict[str, Timer]:
-        return {"attack": Timer(2000)}
+        return {"attack": Timer(2000), "ivulnerable": Timer(300)}
 
     def shoot(self) -> None:
         distance, _ = self.get_player_distance_direction()
@@ -143,3 +144,4 @@ class Cactus(Entity, Monster):
 
         self.animate(dt)
         self.check_death()
+        self.blink()

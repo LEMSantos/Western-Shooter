@@ -1,6 +1,7 @@
 from operator import attrgetter
 from typing import Iterable, Any
 
+from pygame.rect import Rect
 from pygame.math import Vector2
 from pygame.surface import Surface
 from pygame.image import load as load_image
@@ -23,6 +24,9 @@ class Camera(Group):
 
         surface.blit(self.bg_surf, -self.offset)
 
+        screen_reference = Rect(self.offset, (WINDOW_WIDTH, WINDOW_HEIGHT))
+
         for sprite in sorted(self.sprites(), key=attrgetter("rect.centery")):
-            offset_pos = sprite.rect.topleft - self.offset
-            surface.blit(sprite.image, offset_pos)
+            if screen_reference.colliderect(sprite.rect):
+                offset_pos = sprite.rect.topleft - self.offset
+                surface.blit(sprite.image, offset_pos)

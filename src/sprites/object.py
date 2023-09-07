@@ -5,6 +5,8 @@ from pygame.mask import from_surface as mask_from_surface
 
 
 class Obstacle(Sprite):
+    __slots__ = ("image", "rect", "hitbox")
+
     def __init__(self, position: tuple[int, int], surface: Surface, *groups) -> None:
         super().__init__(*groups)
 
@@ -14,6 +16,16 @@ class Obstacle(Sprite):
 
 
 class Bullet(Sprite):
+    __slots__ = (
+        "pos",
+        "mask",
+        "rect",
+        "image",
+        "speed",
+        "direction",
+        "start_position",
+    )
+
     def __init__(
         self, position: tuple[int, int], direction: Vector2, surface: Surface, *groups
     ) -> None:

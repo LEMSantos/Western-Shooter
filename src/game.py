@@ -45,6 +45,7 @@ class Game:
             "obstacles": pygame.sprite.Group(),
             "bullets": pygame.sprite.Group(),
             "enemies": pygame.sprite.Group(),
+            "dynamic": pygame.sprite.Group(),
         }
 
     def init_sounds(self) -> dict[str, pygame.mixer.Sound]:
@@ -92,6 +93,7 @@ class Game:
                 entities["player"] = Player(
                     (obj.x, obj.y),
                     self.groups["all_sprites"],
+                    self.groups["dynamic"],
                 )
 
             if obj.name in enemy_map:
@@ -100,6 +102,7 @@ class Game:
                     entities["player"],
                     self.groups["all_sprites"],
                     self.groups["enemies"],
+                    self.groups["dynamic"],
                 )
 
         return entities
@@ -174,6 +177,7 @@ class Game:
             self.bullet_surface,
             self.groups["all_sprites"],
             self.groups["bullets"],
+            self.groups["dynamic"],
         )
 
     def run(self) -> None:
@@ -181,7 +185,7 @@ class Game:
             self.handle_events()
             dt = self.clock.tick() / 1000
 
-            self.groups["all_sprites"].update(dt)
+            self.groups["dynamic"].update(dt)
             self.bullet_collision()
 
             self.screen.fill("black")

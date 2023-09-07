@@ -19,6 +19,7 @@ from settings import (
 
 class Game:
     def __init__(self) -> None:
+        pygame.mixer.pre_init(44100, 16, 2, 4096)
         pygame.init()
 
         pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))

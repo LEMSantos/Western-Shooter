@@ -37,6 +37,10 @@ Demonstração
 
 
 
+https://github.com/LEMSantos/Western-Shooter/assets/23699861/53ca1df8-9dd4-4665-a1ad-b747a5aa14d9
+
+
+
 [PyTMX]: https://pytmx.readthedocs.io/en/latest/
 [pygame]: http://www.pygame.org
 [pipenv]: https://pipenv.readthedocs.io/en/latest/

@@ -1,5 +1,5 @@
 from operator import attrgetter
-from typing import Iterable, Any
+from typing import Iterable, Any, List
 
 from pygame.rect import Rect
 from pygame.math import Vector2
@@ -26,7 +26,10 @@ class Camera(Group):
 
         screen_reference = Rect(self.offset, (WINDOW_WIDTH, WINDOW_HEIGHT))
 
-        for sprite in sorted(self.sprites(), key=attrgetter("rect.centery")):
+        for sprite in self.sprites():
             if screen_reference.colliderect(sprite.rect):
                 offset_pos = sprite.rect.topleft - self.offset
                 surface.blit(sprite.image, offset_pos)
+
+    def sprites(self) -> List:
+        return sorted(super().sprites(), key=attrgetter("rect.centery"))

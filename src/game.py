@@ -189,7 +189,6 @@ class Game:
             self.groups["dynamic"].update(dt)
             self.bullet_collision()
 
-            self.screen.fill("black")
             self.groups["all_sprites"].custom_draw(self.screen, self.map["player"])
 
             pygame.display.update()

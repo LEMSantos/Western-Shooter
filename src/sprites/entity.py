@@ -12,6 +12,8 @@ from pygame.mask import from_surface as mask_from_surface
 from src.core.timer import Timer
 from src.core.event_bus import bus
 
+_surfaces_cache = {}
+
 
 class Entity(Sprite, metaclass=ABCMeta):
     def __init__(self, position: tuple[int, int], assets_path: str, *groups) -> None:
@@ -54,6 +56,9 @@ class Entity(Sprite, metaclass=ABCMeta):
             self.cooldowns["ivulnerable"].activate()
 
     def import_assets(self, path: str) -> dict[str, list[Surface]]:
+        if path in _surfaces_cache:
+            return _surfaces_cache[path]
+
         animations = {}
 
         for root, dirs, files in os.walk(path):
@@ -62,6 +67,8 @@ class Entity(Sprite, metaclass=ABCMeta):
                     load_image(f"{root}/{file}").convert_alpha()
                     for file in sorted(files, key=lambda f: int(f.split(".")[0]))
                 ]
+
+        _surfaces_cache[path] = animations
 
         return animations
 

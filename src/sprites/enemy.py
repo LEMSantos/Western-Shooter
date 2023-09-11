@@ -16,9 +16,7 @@ class Monster:
 
         return distance, direction
 
-    def face_player(self) -> None:
-        distance, direction = self.get_player_distance_direction()
-
+    def face_player(self, distance: float, direction: Vector2) -> None:
         if distance < self.notice_radius:
             if -0.5 < direction.y < 0.5:
                 if direction.x < 0:
@@ -31,14 +29,12 @@ class Monster:
                 elif direction.y > 0:
                     self.status = "down_idle"
 
-    def walk_to_player(self) -> None:
-        distance, direction = self.get_player_distance_direction()
-
-        self.direction = Vector2(0, 0)
-
+    def walk_to_player(self, distance: float, direction: Vector2) -> None:
         if self.attack_radius < distance < self.walk_radius:
             self.direction = direction
             self.status = self.status.split("_")[0]
+        else:
+            self.direction = Vector2(0, 0)
 
     def check_death(self):
         if self.health <= 0:
@@ -62,34 +58,34 @@ class Coffin(Entity, Monster):
     def init_cooldowns(self) -> dict[str, Timer]:
         return {"attack": Timer(3000), "ivulnerable": Timer(300)}
 
-    def attack(self) -> None:
-        distance, _ = self.get_player_distance_direction()
-
+    def attack(self, distance: float) -> None:
         if distance <= self.attack_radius and not self.cooldowns["attack"].active:
             self.status = f"{self.status.split('_')[0]}_attack"
             self.attacking = True
             self.damage_done = False
             self.cooldowns["attack"].activate()
 
-    def animate(self, dt) -> None:
+    def animate(self, dt: float, distance: float) -> None:
         super().animate(dt)
 
         if int(self.frame_index) == 4 and self.attacking and not self.damage_done:
-            if self.get_player_distance_direction()[0] < self.attack_radius:
+            if distance < self.attack_radius:
                 self.player.damage()
                 self.damage_done = True
 
     def update(self, dt: float) -> None:
+        distance, direction = self.get_player_distance_direction()
+
         if not self.attacking:
-            self.face_player()
-            self.walk_to_player()
-            self.attack()
+            self.face_player(distance, direction)
+            self.walk_to_player(distance, direction)
+            self.attack(distance)
             self.move(dt, "coffin")
 
         for timer in self.cooldowns.values():
             timer.update()
 
-        self.animate(dt)
+        self.animate(dt, distance)
         self.check_death()
         self.blink()
 
@@ -111,21 +107,17 @@ class Cactus(Entity, Monster):
     def init_cooldowns(self) -> dict[str, Timer]:
         return {"attack": Timer(2000), "ivulnerable": Timer(300)}
 
-    def shoot(self) -> None:
-        distance, _ = self.get_player_distance_direction()
-
+    def shoot(self, distance: float) -> None:
         if distance <= self.attack_radius and not self.cooldowns["attack"].active:
             self.status = f"{self.status.split('_')[0]}_attack"
             self.attacking = True
             self.bullet_shot = False
             self.cooldowns["attack"].activate()
 
-    def animate(self, dt) -> None:
+    def animate(self, dt, distance: float, direction: Vector2) -> None:
         super().animate(dt)
 
         if int(self.frame_index) == 6 and self.attacking and not self.bullet_shot:
-            distance, direction = self.get_player_distance_direction()
-
             if distance < self.attack_radius:
                 bullet_pos = self.rect.center + direction * 80
                 bus.emit("cactus:attack", position=bullet_pos, direction=direction)
@@ -133,15 +125,17 @@ class Cactus(Entity, Monster):
                 self.bullet_shot = True
 
     def update(self, dt: float) -> None:
+        distance, direction = self.get_player_distance_direction()
+
         if not self.attacking:
-            self.face_player()
-            self.walk_to_player()
-            self.shoot()
+            self.face_player(distance, direction)
+            self.walk_to_player(distance, direction)
+            self.shoot(distance)
             self.move(dt, "cactus")
 
         for timer in self.cooldowns.values():
             timer.update()
 
-        self.animate(dt)
+        self.animate(dt, distance, direction)
         self.check_death()
         self.blink()

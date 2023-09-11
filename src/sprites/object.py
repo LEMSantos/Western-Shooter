@@ -8,11 +8,11 @@ class Obstacle(Sprite):
     __slots__ = ("image", "rect", "hitbox")
 
     def __init__(self, position: tuple[int, int], surface: Surface, *groups) -> None:
-        super().__init__(*groups)
-
         self.image = surface
         self.rect = self.image.get_rect(topleft=position)
         self.hitbox = self.rect.inflate(0, -self.rect.height / 3)
+
+        super().__init__(*groups)
 
 
 class Bullet(Sprite):
@@ -29,8 +29,6 @@ class Bullet(Sprite):
     def __init__(
         self, position: tuple[int, int], direction: Vector2, surface: Surface, *groups
     ) -> None:
-        super().__init__(*groups)
-
         self.start_position = position
 
         self.image = surface
@@ -39,11 +37,13 @@ class Bullet(Sprite):
 
         self.pos = Vector2(self.rect.center)
         self.direction = direction
-        self.speed = 400
+        self.speed = 500
+
+        super().__init__(*groups)
 
     def update(self, dt: float) -> None:
         self.pos += self.direction * self.speed * dt
         self.rect.center = (round(self.pos.x), round(self.pos.y))
 
-        if (self.pos - self.start_position).magnitude() > 1500:
+        if (self.pos - self.start_position).magnitude() > 700:
             self.kill()

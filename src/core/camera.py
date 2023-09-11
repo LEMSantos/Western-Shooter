@@ -18,9 +18,12 @@ class Camera(Group):
         self.offset = Vector2(0, 0)
         self.bg_surf = load_image("graphics/other/bg.png").convert()
 
+        self.half_width = WINDOW_WIDTH / 2
+        self.half_height = WINDOW_HEIGHT / 2
+
     def custom_draw(self, surface: Surface, player: Player) -> None:
-        self.offset.x = player.rect.centerx - WINDOW_WIDTH / 2
-        self.offset.y = player.rect.centery - WINDOW_HEIGHT / 2
+        self.offset.x = player.rect.centerx - self.half_width
+        self.offset.y = player.rect.centery - self.half_height
 
         surface.blit(self.bg_surf, -self.offset)
 

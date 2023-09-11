@@ -28,6 +28,7 @@ class Game:
 
         self.screen = pygame.display.get_surface()
         self.clock = pygame.time.Clock()
+        self.font = pygame.font.SysFont("Arial", 18, bold=True)
 
         self.groups = self.init_groups()
         self.map = self.init_map()
@@ -182,6 +183,11 @@ class Game:
             self.groups["bullets"],
         )
 
+    def render_fps(self):
+        fps = str(round(self.clock.get_fps(), 2))
+        fps_t = self.font.render(f"FPS: {fps}", 1, pygame.Color("RED"))
+        self.screen.blit(fps_t, (10, 10))
+
     def run(self) -> None:
         while True:
             self.handle_events()
@@ -197,5 +203,7 @@ class Game:
                 surface=self.screen,
                 player=self.map["player"],
             )
+
+            self.render_fps()
 
             pygame.display.update()

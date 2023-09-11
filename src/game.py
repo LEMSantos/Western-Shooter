@@ -9,6 +9,7 @@ from src.sprites.entity import Entity
 from src.sprites.player import Player
 from src.sprites.enemy import Cactus, Coffin
 from src.sprites.object import Bullet, Obstacle
+from src.core.mapping_group import MappingGroup
 from settings import (
     TILE_SIZE,
     GAME_TITLE,
@@ -43,10 +44,9 @@ class Game:
     def init_groups(self) -> dict[str, pygame.sprite.Group]:
         return {
             "all_sprites": Camera(),
-            "obstacles": pygame.sprite.Group(),
+            "obstacles": MappingGroup(TILE_SIZE * 2),
             "bullets": pygame.sprite.Group(),
-            "enemies": pygame.sprite.Group(),
-            "dynamic": pygame.sprite.Group(),
+            "enemies": MappingGroup(TILE_SIZE * 2),
         }
 
     def init_sounds(self) -> dict[str, pygame.mixer.Sound]:
@@ -94,7 +94,6 @@ class Game:
                 entities["player"] = Player(
                     (obj.x, obj.y),
                     self.groups["all_sprites"],
-                    self.groups["dynamic"],
                 )
 
             if obj.name in enemy_map:
@@ -103,7 +102,6 @@ class Game:
                     entities["player"],
                     self.groups["all_sprites"],
                     self.groups["enemies"],
-                    self.groups["dynamic"],
                 )
 
         return entities
@@ -133,7 +131,7 @@ class Game:
     def collision_player_obstacles(
         self, entity: Entity, axis: str, direction: pygame.math.Vector2
     ):
-        for sprite in self.groups["obstacles"].sprites():
+        for sprite in self.groups["obstacles"].near_sprites(entity.hitbox.center):
             if sprite.hitbox.colliderect(entity.hitbox):
                 if axis == "horizontal":
                     if direction.x > 0:
@@ -151,22 +149,26 @@ class Game:
 
     def bullet_collision(self) -> None:
         for bullet in self.groups["bullets"].sprites():
-            for obstacle in self.groups["obstacles"].sprites():
-                if pygame.sprite.collide_mask(bullet, obstacle):
-                    bullet.kill()
-                    continue
-
-            for enemy in self.groups["enemies"].sprites():
-                if pygame.sprite.collide_mask(bullet, enemy):
-                    enemy.damage()
-                    bullet.kill()
-                    self.sounds["hit"].play()
-                    continue
-
             if pygame.sprite.collide_mask(bullet, self.map["player"]):
                 self.map["player"].damage()
                 self.sounds["hit"].play()
                 bullet.kill()
+                continue
+
+            for enemy in self.groups["enemies"].near_sprites(bullet.rect.center):
+                if pygame.sprite.collide_mask(bullet, enemy):
+                    enemy.damage()
+                    bullet.kill()
+                    self.sounds["hit"].play()
+                    break
+
+            if not bullet.alive:
+                continue
+
+            for obstacle in self.groups["obstacles"].near_sprites(bullet.rect.center):
+                if bullet.rect.colliderect(obstacle.hitbox):
+                    bullet.kill()
+                    break
 
     def create_bullet(
         self, position: tuple[int, int], direction: pygame.math.Vector2
@@ -178,17 +180,22 @@ class Game:
             self.bullet_surface,
             self.groups["all_sprites"],
             self.groups["bullets"],
-            self.groups["dynamic"],
         )
 
     def run(self) -> None:
         while True:
             self.handle_events()
-            dt = self.clock.tick() / 1000
+            dt = self.clock.tick(60) / 1000
 
-            self.groups["dynamic"].update(dt)
+            self.groups["bullets"].update(dt)
+            self.groups["enemies"].update(dt)
+            self.map["player"].update(dt)
+
             self.bullet_collision()
 
-            self.groups["all_sprites"].custom_draw(self.screen, self.map["player"])
+            self.groups["all_sprites"].custom_draw(
+                surface=self.screen,
+                player=self.map["player"],
+            )
 
             pygame.display.update()

@@ -17,23 +17,23 @@ class Player(Entity):
         self.bullet_shot = False
         self.health = 10
 
-    def init_cooldowns(self) -> dict[str, Timer]:
-        return {"attack": Timer(1000), "ivulnerable": Timer(300)}
-
-    def move_input(self) -> None:
-        keys_map = {
+        self.keys_map = {
             K_UP: ("up", Vector2(0, -1)),
             K_RIGHT: ("right", Vector2(1, 0)),
             K_DOWN: ("down", Vector2(0, 1)),
             K_LEFT: ("left", Vector2(-1, 0)),
         }
 
+    def init_cooldowns(self) -> dict[str, Timer]:
+        return {"attack": Timer(1000), "ivulnerable": Timer(300)}
+
+    def move_input(self) -> None:
         self.direction = Vector2(0, 0)
         self.status = f"{self.status.split('_')[0]}_idle"
 
         pressed_key = get_pressed_key()
 
-        for key, (status, direction) in keys_map.items():
+        for key, (status, direction) in self.keys_map.items():
             if pressed_key[key]:
                 self.direction += direction
                 self.status = status

@@ -17,13 +17,12 @@ _surfaces_cache = {}
 
 class Entity(Sprite, metaclass=ABCMeta):
     def __init__(self, position: tuple[int, int], assets_path: str, *groups) -> None:
-        super().__init__(*groups)
-
         self.assets = self.import_assets(assets_path)
         self.status = "down_idle"
         self.previous_status = self.status
         self.animation_speed = 7
         self.frame_index = 0
+        self.previous_frame_index = self.frame_index
 
         self.image = self.assets[self.status][self.frame_index]
         self.rect = self.image.get_rect(center=position)
@@ -37,6 +36,8 @@ class Entity(Sprite, metaclass=ABCMeta):
         self.attacking = False
         self.cooldowns = self.init_cooldowns()
         self.health = 3
+
+        super().__init__(*groups)
 
     def blink(self) -> None:
         if self.cooldowns["ivulnerable"].active and self.weave_value():
@@ -73,36 +74,50 @@ class Entity(Sprite, metaclass=ABCMeta):
         return animations
 
     def move(self, dt: float, entity: str) -> None:
-        if self.direction.magnitude() != 0:
-            self.direction = self.direction.normalize()
+        if self.direction.magnitude() == 0:
+            return
 
-        self.pos.x += self.direction.x * self.speed * dt
-        self.rect.centerx = round(self.pos.x)
-        self.hitbox.centerx = self.rect.centerx
-        bus.emit(
-            f"{entity}:move", entity=self, axis="horizontal", direction=self.direction
-        )
+        self.direction = self.direction.normalize()
 
-        self.pos.y += self.direction.y * self.speed * dt
-        self.rect.centery = round(self.pos.y)
-        self.hitbox.centery = self.rect.centery
-        bus.emit(
-            f"{entity}:move", entity=self, axis="vertical", direction=self.direction
-        )
+        if self.direction.x != 0:
+            self.pos.x += self.direction.x * self.speed * dt
+            self.rect.centerx = round(self.pos.x)
+            self.hitbox.centerx = self.rect.centerx
+            bus.emit(
+                f"{entity}:move",
+                entity=self,
+                axis="horizontal",
+                direction=self.direction,
+            )
+
+        if self.direction.y != 0:
+            self.pos.y += self.direction.y * self.speed * dt
+            self.rect.centery = round(self.pos.y)
+            self.hitbox.centery = self.rect.centery
+            bus.emit(
+                f"{entity}:move", entity=self, axis="vertical", direction=self.direction
+            )
 
     def animate(self, dt) -> None:
         animations = self.assets[self.status]
 
         self.frame_index += self.animation_speed * dt
+        new_frame_index = int(self.frame_index % len(animations))
 
         if self.previous_status != self.status:
             self.previous_status = self.status
             self.frame_index = 0
+            new_frame_index = 0
 
         if self.attacking and self.frame_index >= len(animations):
             self.attacking = False
 
-        self.image = animations[int(self.frame_index % len(animations))]
+        if new_frame_index == self.previous_frame_index:
+            return
+
+        self.previous_frame_index = new_frame_index
+
+        self.image = animations[new_frame_index]
         self.mask = mask_from_surface(self.image)
 
     @abstractmethod

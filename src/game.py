@@ -8,6 +8,7 @@ from src.core.camera import Camera
 from src.sprites.entity import Entity
 from src.sprites.player import Player
 from src.sprites.enemy import Cactus, Coffin
+from src.sprites.health_bar import HealthBar
 from src.sprites.object import Bullet, Obstacle
 from src.core.mapping_group import MappingGroup
 from settings import (
@@ -42,12 +43,15 @@ class Game:
         self.sounds = self.init_sounds()
         self.sounds["music"].play(-1)
 
+        self.health_bars = {}
+
     def init_groups(self) -> dict[str, pygame.sprite.Group]:
         return {
             "all_sprites": Camera(),
             "obstacles": MappingGroup(TILE_SIZE * 2),
             "bullets": pygame.sprite.Group(),
             "enemies": MappingGroup(TILE_SIZE * 2),
+            "health_bar": pygame.sprite.Group(),
         }
 
     def init_sounds(self) -> dict[str, pygame.mixer.Sound]:
@@ -129,6 +133,8 @@ class Game:
         bus.on("player:attack")(self.create_bullet)
         bus.on("cactus:attack")(self.create_bullet)
 
+        bus.on("received:damage")(self.create_health_bar)
+
     def collision_player_obstacles(
         self, entity: Entity, axis: str, direction: pygame.math.Vector2
     ):
@@ -183,6 +189,15 @@ class Game:
             self.groups["bullets"],
         )
 
+    def create_health_bar(self, entity: Entity) -> None:
+        if entity in self.health_bars and self.health_bars[entity].alive():
+            self.health_bars[entity].keep_alive()
+            return
+
+        self.health_bars[entity] = HealthBar(
+            entity, self.groups["health_bar"], self.groups["all_sprites"]
+        )
+
     def render_fps(self):
         fps = str(round(self.clock.get_fps(), 2))
         fps_t = self.font.render(f"FPS: {fps}", 1, pygame.Color("RED"))
@@ -195,6 +210,7 @@ class Game:
 
             self.groups["bullets"].update(dt)
             self.groups["enemies"].update(dt)
+            self.groups["health_bar"].update()
             self.map["player"].update(dt)
 
             self.bullet_collision()

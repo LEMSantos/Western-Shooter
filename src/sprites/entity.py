@@ -36,6 +36,7 @@ class Entity(Sprite, metaclass=ABCMeta):
         self.attacking = False
         self.cooldowns = self.init_cooldowns()
         self.health = 3
+        self.max_health = self.health
 
         super().__init__(*groups)
 
@@ -55,6 +56,7 @@ class Entity(Sprite, metaclass=ABCMeta):
         if not self.cooldowns["ivulnerable"].active:
             self.health -= 1
             self.cooldowns["ivulnerable"].activate()
+            bus.emit("received:damage", entity=self)
 
     def import_assets(self, path: str) -> dict[str, list[Surface]]:
         if path in _surfaces_cache:

@@ -16,6 +16,7 @@ class Player(Entity):
 
         self.bullet_shot = False
         self.health = 10
+        self.max_health = self.health
 
         self.keys_map = {
             K_UP: ("up", Vector2(0, -1)),

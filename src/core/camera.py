@@ -22,6 +22,18 @@ class Camera(Group):
         self.half_height = WINDOW_HEIGHT / 2
 
     def custom_draw(self, surface: Surface, player: Player) -> None:
+        """Draws the game screen on the provided surface, centered
+        around the player.
+
+        Args:
+            surface (Surface): The surface on which to draw the game
+                screen.
+            player (Player): The player object that the screen should
+                be centered around.
+
+        Returns:
+            None
+        """
         self.offset.x = player.rect.centerx - self.half_width
         self.offset.y = player.rect.centery - self.half_height
 
@@ -35,4 +47,9 @@ class Camera(Group):
                 surface.blit(sprite.image, offset_pos)
 
     def sprites(self) -> List:
+        """Return a sorted list of sprites based on their y-coordinate.
+
+        Returns:
+            List: A list of sprites.
+        """
         return sorted(super().sprites(), key=attrgetter("rect.centery"))

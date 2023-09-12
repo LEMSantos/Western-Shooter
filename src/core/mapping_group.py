@@ -2,7 +2,7 @@ from typing import Any
 from collections import defaultdict
 
 import numpy as np
-from pygame.sprite import Group
+from pygame.sprite import Group, Sprite
 
 
 class MappingGroup(Group):
@@ -13,6 +13,17 @@ class MappingGroup(Group):
         self.position_map = defaultdict(list)
 
     def add_internal(self, sprite: Any, layer: None = None) -> None:
+        """Adds a sprite to the internal list of sprites and updates
+        the position map.
+
+        Args:
+            sprite (Any): The sprite to be added.
+            layer (None, optional): The layer to add the sprite to.
+                Defaults to None.
+
+        Returns:
+            None
+        """
         if not self.has_internal(sprite):
             for pos in self._get_all_tiles_from_sprite(sprite):
                 self.position_map[tuple(pos)].append(sprite)
@@ -20,6 +31,15 @@ class MappingGroup(Group):
         return super().add_internal(sprite, layer)
 
     def remove_internal(self, sprite: Any) -> None:
+        """Remove the given sprite from the position map and from the
+        internal list of the container.
+
+        Args:
+            sprite (Any): The sprite to be removed.
+
+        Returns:
+            None
+        """
         if self.has_internal(sprite):
             for pos in self._get_all_tiles_from_sprite(sprite):
                 self.position_map[tuple(pos)].remove(sprite)
@@ -27,6 +47,15 @@ class MappingGroup(Group):
         return super().remove_internal(sprite)
 
     def update(self, *args: Any, **kwargs: Any) -> None:
+        """Update the position of the sprites on the game board.
+
+        Args:
+            *args: Additional positional arguments.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            None
+        """
         for sprite in self.sprites():
             old_sprite_pos = self._get_all_tiles_from_sprite(sprite)
             sprite.update(*args, **kwargs)
@@ -39,7 +68,18 @@ class MappingGroup(Group):
                 for new_pos in new_sprite_pos:
                     self.position_map[tuple(new_pos)].append(sprite)
 
-    def near_sprites(self, position: tuple[int, int]) -> list[Group]:
+    def near_sprites(self, position: tuple[int, int]) -> list[Sprite]:
+        """Returns a list of Sprite objects that are near the given
+        position.
+
+        Args:
+            position (tuple[int, int]): The position to check for
+                nearby sprites.
+
+        Returns:
+            list[Sprite]: A list of Sprite objects that are near the
+                given position.
+        """
         tile_pos = self._get_tile_position(*position)
         returned_sprites = []
 
@@ -62,6 +102,16 @@ class MappingGroup(Group):
         return returned_sprites
 
     def _get_all_tiles_from_sprite(self, sprite: Any) -> list[tuple[int, int]]:
+        """Retrieves all the tiles from a given sprite.
+
+        Args:
+            sprite (Any): The sprite from which to retrieve the tiles.
+
+        Returns:
+            list[tuple[int, int]]: A list of tuples representing the
+                position of each tile.
+
+        """
         top_sprite_tile = self._get_tile_position(*sprite.rect.topleft)
         tiles_range = (
             (sprite.rect.bottomright[0] - sprite.rect.topleft[0]) // self.tile_size,
@@ -80,4 +130,15 @@ class MappingGroup(Group):
         return np.column_stack((Y2D.ravel(), X2D.ravel()))
 
     def _get_tile_position(self, x: int, y: int) -> tuple[int, int]:
+        """Returns the position of a tile based on the given x and y
+        coordinates.
+
+        Args:
+            x (int): The x coordinate.
+            y (int): The y coordinate.
+
+        Returns:
+            tuple[int, int]: The position of the tile as a tuple of
+                integers.
+        """
         return x // self.tile_size, y // self.tile_size

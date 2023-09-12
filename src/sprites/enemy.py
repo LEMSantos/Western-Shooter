@@ -45,6 +45,9 @@ class Coffin(Entity, Monster):
     def __init__(self, position: tuple[int, int], player: Player, *groups) -> None:
         super().__init__(position, "graphics/monster/coffin", *groups)
 
+        self.health = 5
+        self.max_health = self.health
+
         self.speed = 100
         self.animation_speed = 15
 

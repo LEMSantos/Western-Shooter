@@ -127,16 +127,18 @@ class Game:
                 sys.exit()
 
     def register_events(self) -> None:
-        bus.on("player:move")(self.collision_player_obstacles)
-        bus.on("cactus:move")(self.collision_player_obstacles)
-        bus.on("coffin:move")(self.collision_player_obstacles)
+        bus.on("player:move")(self.collision_entity_obstacles)
+        bus.on("cactus:move")(self.collision_entity_obstacles)
+        bus.on("coffin:move")(self.collision_entity_obstacles)
 
         bus.on("player:attack")(self.create_bullet)
         bus.on("cactus:attack")(self.create_bullet)
 
         bus.on("received:damage")(self.create_health_bar)
 
-    def collision_player_obstacles(
+        bus.on("bullet:move")(self.bullet_collision)
+
+    def collision_entity_obstacles(
         self, entity: Entity, axis: str, direction: pygame.math.Vector2
     ):
         for sprite in self.groups["obstacles"].near_sprites(entity.hitbox.center):
@@ -155,28 +157,24 @@ class Game:
                 entity.pos = pygame.math.Vector2(entity.hitbox.center)
                 entity.rect.center = entity.hitbox.center
 
-    def bullet_collision(self) -> None:
-        for bullet in self.groups["bullets"].sprites():
-            if pygame.sprite.collide_mask(bullet, self.map["player"]):
-                self.map["player"].damage()
+    def bullet_collision(self, bullet: Bullet) -> None:
+        if pygame.sprite.collide_mask(bullet, self.map["player"]):
+            self.map["player"].damage()
+            self.sounds["hit"].play()
+            bullet.kill()
+            return
+
+        for enemy in self.groups["enemies"].near_sprites(bullet.rect.center):
+            if pygame.sprite.collide_mask(bullet, enemy):
+                enemy.damage()
                 self.sounds["hit"].play()
                 bullet.kill()
-                continue
+                return
 
-            for enemy in self.groups["enemies"].near_sprites(bullet.rect.center):
-                if pygame.sprite.collide_mask(bullet, enemy):
-                    enemy.damage()
-                    bullet.kill()
-                    self.sounds["hit"].play()
-                    break
-
-            if not bullet.alive:
-                continue
-
-            for obstacle in self.groups["obstacles"].near_sprites(bullet.rect.center):
-                if bullet.rect.colliderect(obstacle.hitbox):
-                    bullet.kill()
-                    break
+        for obstacle in self.groups["obstacles"].near_sprites(bullet.rect.center):
+            if bullet.rect.colliderect(obstacle.hitbox):
+                bullet.kill()
+                break
 
     def create_bullet(
         self, position: tuple[int, int], direction: pygame.math.Vector2
@@ -209,12 +207,10 @@ class Game:
             self.handle_events()
             dt = self.clock.tick(FRAME_RATE_LIMITER) / 1000
 
-            self.groups["bullets"].update(dt)
             self.groups["enemies"].update(dt)
-            self.groups["health_bar"].update()
             self.map["player"].update(dt)
-
-            self.bullet_collision()
+            self.groups["bullets"].update(dt)
+            self.groups["health_bar"].update()
 
             rects_to_update = self.groups["all_sprites"].custom_draw(
                 surface=self.screen,

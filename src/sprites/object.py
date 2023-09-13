@@ -3,6 +3,8 @@ from pygame.sprite import Sprite
 from pygame.surface import Surface
 from pygame.mask import from_surface as mask_from_surface
 
+from src.core.event_bus import bus
+
 
 class Obstacle(Sprite):
     __slots__ = ("image", "rect", "hitbox")
@@ -52,3 +54,6 @@ class Bullet(Sprite):
 
         if (self.pos - self.start_position).magnitude() > 700:
             self.kill()
+            return
+
+        bus.emit("bullet:move", bullet=self)

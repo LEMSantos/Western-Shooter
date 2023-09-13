@@ -12,6 +12,7 @@ from src.sprites.health_bar import HealthBar
 from src.sprites.object import Bullet, Obstacle
 from src.core.mapping_group import MappingGroup
 from settings import (
+    FRAME_RATE_LIMITER,
     TILE_SIZE,
     GAME_TITLE,
     WINDOW_WIDTH,
@@ -206,7 +207,7 @@ class Game:
     def run(self) -> None:
         while True:
             self.handle_events()
-            dt = self.clock.tick(60) / 1000
+            dt = self.clock.tick(FRAME_RATE_LIMITER) / 1000
 
             self.groups["bullets"].update(dt)
             self.groups["enemies"].update(dt)

@@ -30,9 +30,6 @@ class Camera(Group):
                 screen.
             player (Player): The player object that the screen should
                 be centered around.
-
-        Returns:
-            None
         """
         self.offset.x = player.rect.centerx - self.half_width
         self.offset.y = player.rect.centery - self.half_height

@@ -41,6 +41,9 @@ class Entity(Sprite, metaclass=ABCMeta):
         super().__init__(*groups)
 
     def blink(self) -> None:
+        """Toggles the image of the object between its original and a
+        white version.
+        """
         if self.cooldowns["ivulnerable"].active and self.weave_value():
             mask = mask_from_surface(self.image)
 
@@ -50,15 +53,36 @@ class Entity(Sprite, metaclass=ABCMeta):
             self.image = white_surface
 
     def weave_value(self) -> float:
+        """Calculate a boolean value based on the current clock ticks.
+
+        Returns:
+            float: The calculated boolean value, which is the sine of
+                the current clock ticks.
+        """
         return sin(get_clock_ticks()) >= 0
 
     def damage(self) -> None:
+        """Decreases the health of the entity by 1 if the "ivulnerable"
+        cooldown is not active.
+        """
         if not self.cooldowns["ivulnerable"].active:
             self.health -= 1
             self.cooldowns["ivulnerable"].activate()
+
             bus.emit("received:damage", entity=self)
 
     def import_assets(self, path: str) -> dict[str, list[Surface]]:
+        """Imports assets from the specified path and returns a
+        dictionary mapping animation names to lists of Surfaces.
+
+        Args:
+            path (str): The path to the directory containing the
+                assets.
+
+        Returns:
+            dict[str, list[Surface]]: A dictionary mapping animation
+                names to lists of Surfaces.
+        """
         if path in _surfaces_cache:
             return _surfaces_cache[path]
 
@@ -76,6 +100,12 @@ class Entity(Sprite, metaclass=ABCMeta):
         return animations
 
     def move(self, dt: float, entity: str) -> None:
+        """Move the entity based on the given time delta.
+
+        Args:
+            dt (float): The time delta.
+            entity (str): The name of the entity.
+        """
         if self.direction.magnitude() == 0:
             return
 
@@ -85,6 +115,7 @@ class Entity(Sprite, metaclass=ABCMeta):
             self.pos.x += self.direction.x * self.speed * dt
             self.rect.centerx = round(self.pos.x)
             self.hitbox.centerx = self.rect.centerx
+
             bus.emit(
                 f"{entity}:move",
                 entity=self,
@@ -96,11 +127,17 @@ class Entity(Sprite, metaclass=ABCMeta):
             self.pos.y += self.direction.y * self.speed * dt
             self.rect.centery = round(self.pos.y)
             self.hitbox.centery = self.rect.centery
+
             bus.emit(
                 f"{entity}:move", entity=self, axis="vertical", direction=self.direction
             )
 
-    def animate(self, dt) -> None:
+    def animate(self, dt: float) -> None:
+        """Animate the object based on the given time interval.
+
+        Args:
+            dt (float): The time delta.
+        """
         animations = self.assets[self.status]
 
         self.frame_index += self.animation_speed * dt
@@ -124,4 +161,11 @@ class Entity(Sprite, metaclass=ABCMeta):
 
     @abstractmethod
     def init_cooldowns(self) -> dict[str, Timer]:
+        """Initializes the cooldowns for the object.
+
+        Returns:
+            dict[str, Timer]: A dictionary where the keys are strings
+                representing the names of the cooldowns, and the values
+                are Timer objects representing the cooldown timers.
+        """
         pass

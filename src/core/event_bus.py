@@ -29,9 +29,6 @@ class EventBus:
             event_name (str): The name of the event to emit.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
-
-        Returns:
-            None
         """
         if event_name in self.registered_events:
             self.registered_events[event_name](*args, **kwargs)

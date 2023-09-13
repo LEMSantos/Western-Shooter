@@ -20,9 +20,6 @@ class MappingGroup(Group):
             sprite (Any): The sprite to be added.
             layer (None, optional): The layer to add the sprite to.
                 Defaults to None.
-
-        Returns:
-            None
         """
         if not self.has_internal(sprite):
             for pos in self._get_all_tiles_from_sprite(sprite):
@@ -36,9 +33,6 @@ class MappingGroup(Group):
 
         Args:
             sprite (Any): The sprite to be removed.
-
-        Returns:
-            None
         """
         if self.has_internal(sprite):
             for pos in self._get_all_tiles_from_sprite(sprite):
@@ -52,9 +46,6 @@ class MappingGroup(Group):
         Args:
             *args: Additional positional arguments.
             **kwargs: Additional keyword arguments.
-
-        Returns:
-            None
         """
         for sprite in self.sprites():
             old_sprite_pos = self._get_all_tiles_from_sprite(sprite)

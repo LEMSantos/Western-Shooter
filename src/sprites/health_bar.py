@@ -24,10 +24,25 @@ class HealthBar(Sprite):
         self.alive_timer.activate()
 
     def keep_alive(self) -> None:
+        """Keep the object alive by deactivating and then activating
+        the alive timer.
+        """
         self.alive_timer.deactivate()
         self.alive_timer.activate()
 
     def update(self) -> None:
+        """
+        Updates the health bar image based on the current health of the
+        entity.
+
+        This function calculates the percentage of the entity's health
+        and updates the health bar image accordingly. If the entity's
+        health is greater than 50% and the alive timer is not active,
+        the health bar is killed. If the entity's health is 0, the
+        health bar is also killed. Otherwise, the health bar is drawn
+        with two rectangles: a black background rectangle and a colored
+        rectangle representing the health percentage.
+        """
         health_percent = self.entity.health / self.entity.max_health
 
         if (

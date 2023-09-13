@@ -26,9 +26,20 @@ class Player(Entity):
         }
 
     def init_cooldowns(self) -> dict[str, Timer]:
+        """Initializes the cooldowns for the entity.
+
+        Returns:
+            dict[str, Timer]: A dictionary with the cooldown timers.
+        """
         return {"attack": Timer(1000), "ivulnerable": Timer(300)}
 
     def move_input(self) -> None:
+        """Moves the player based on the pressed keys.
+
+        This function updates the `direction` attribute of the player
+        based on the keys pressed by the user. It also updates the
+        `status` attribute based on the keys pressed.
+        """
         self.direction = Vector2(0, 0)
         self.status = f"{self.status.split('_')[0]}_idle"
 
@@ -40,12 +51,18 @@ class Player(Entity):
                 self.status = status
 
     def attack_input(self):
+        """Process the input for attacking."""
         pressed_key = get_pressed_key()
 
         if pressed_key[K_SPACE]:
             self.shoot()
 
     def __get_shoot_direction(self) -> Vector2:
+        """Retrieves the shoot direction based on the current status.
+
+        Returns:
+            Vector2: A vector representing the shoot direction.
+        """
         direction = Vector2(0, 0)
 
         match self.status.split("_")[0]:
@@ -61,13 +78,19 @@ class Player(Entity):
         return direction
 
     def shoot(self) -> None:
+        """Shoots a bullet if the attack cooldown is not active."""
         if not self.cooldowns["attack"].active:
             self.status = f"{self.status.split('_')[0]}_attack"
             self.cooldowns["attack"].activate()
             self.attacking = True
             self.bullet_shot = False
 
-    def animate(self, dt) -> None:
+    def animate(self, dt: float) -> None:
+        """Animates the object based on the given delta time.
+
+        Args:
+            dt (float): The time difference between frames.
+        """
         super().animate(dt)
 
         if int(self.frame_index) == 2 and self.attacking and not self.bullet_shot:
@@ -79,11 +102,20 @@ class Player(Entity):
             self.bullet_shot = True
 
     def check_death(self) -> None:
+        """Check if the health of the character is less than or equal
+        to 0. If so, quit the game and exit the program.
+        """
         if self.health <= 0:
             quit_game()
             sys.exit()
 
     def update(self, dt: float) -> None:
+        """Update the state of the object based on the given time
+        increment.
+
+        Args:
+            dt (float): The time increment.
+        """
         if not self.attacking:
             self.move_input()
             self.attack_input()

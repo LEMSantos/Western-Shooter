@@ -8,6 +8,14 @@ from src.sprites.player import Player
 
 class Monster:
     def get_player_distance_direction(self) -> tuple[int, Vector2]:
+        """Calculates the distance and direction between the current
+        monster and the player.
+
+        Returns
+            tuple[int, Vector2]: A tuple containing the distance (int)
+                and direction (Vector2) between the monster and the
+                player.
+        """
         distance = (self.player.pos - self.pos).magnitude()
         direction = Vector2(0, 0)
 
@@ -17,6 +25,15 @@ class Monster:
         return distance, direction
 
     def face_player(self, distance: float, direction: Vector2) -> None:
+        """Sets the status of the monster based on the distance and
+        direction of the player.
+
+        Args:
+            distance (float): The distance between the player and the
+                monster.
+            direction (Vector2): The direction vector from the player
+                to the monster.
+        """
         if distance < self.notice_radius:
             if -0.5 < direction.y < 0.5:
                 if direction.x < 0:
@@ -30,6 +47,15 @@ class Monster:
                     self.status = "down_idle"
 
     def walk_to_player(self, distance: float, direction: Vector2) -> None:
+        """Move the monster towards the given direction if it is in
+        walk radius.
+
+        Args:
+            distance (float): The distance between the monster and the
+                player.
+            direction (Vector2): The direction in which the monster
+                should move.
+        """
         if self.attack_radius < distance < self.walk_radius:
             self.direction = direction
             self.status = self.status.split("_")[0]
@@ -37,6 +63,9 @@ class Monster:
             self.direction = Vector2(0, 0)
 
     def check_death(self):
+        """Check if the health of the character is equal to or below
+        zero, and if so, call the kill() method.
+        """
         if self.health <= 0:
             self.kill()
 
@@ -59,9 +88,22 @@ class Coffin(Entity, Monster):
         self.damage_done = False
 
     def init_cooldowns(self) -> dict[str, Timer]:
+        """Initialize the cooldowns for coffin actions.
+
+        Returns:
+            dict[str, Timer]: A dictionary mapping action names to
+                Timer objects representing the cooldowns.
+        """
         return {"attack": Timer(3000), "ivulnerable": Timer(300)}
 
     def attack(self, distance: float) -> None:
+        """Attacks the target if it is within the attack radius and the
+        attack cooldown is not active.
+
+        Args:
+            distance (float): The distance between the attacker and the
+                target.
+        """
         if distance <= self.attack_radius and not self.cooldowns["attack"].active:
             self.status = f"{self.status.split('_')[0]}_attack"
             self.attacking = True
@@ -69,6 +111,13 @@ class Coffin(Entity, Monster):
             self.cooldowns["attack"].activate()
 
     def animate(self, dt: float, distance: float) -> None:
+        """Animates the object based on the elapsed time and distance.
+
+        Args:
+            dt (float): The elapsed time since the last frame.
+            distance (float): The distance between the object and the
+                player.
+        """
         super().animate(dt)
 
         if int(self.frame_index) == 4 and self.attacking and not self.damage_done:
@@ -77,6 +126,12 @@ class Coffin(Entity, Monster):
                 self.damage_done = True
 
     def update(self, dt: float) -> None:
+        """Updates the enemy's state and behavior based on the elapsed
+        time.
+
+        Args:
+            dt (float): The elapsed time since the last update.
+        """
         distance, direction = self.get_player_distance_direction()
 
         if not self.attacking:
@@ -108,9 +163,21 @@ class Cactus(Entity, Monster):
         self.bullet_shot = False
 
     def init_cooldowns(self) -> dict[str, Timer]:
+        """Initialize the cooldowns for cactus actions.
+
+        Returns:
+            dict[str, Timer]: A dictionary mapping action names to
+                Timer objects representing the cooldowns.
+        """
         return {"attack": Timer(2000), "ivulnerable": Timer(300)}
 
     def shoot(self, distance: float) -> None:
+        """Shoots at a given distance if the distance is within the
+        attack radius and the attack cooldown is not active.
+
+        Args:
+            distance (float): The distance at which to shoot.
+        """
         if distance <= self.attack_radius and not self.cooldowns["attack"].active:
             self.status = f"{self.status.split('_')[0]}_attack"
             self.attacking = True
@@ -118,6 +185,13 @@ class Cactus(Entity, Monster):
             self.cooldowns["attack"].activate()
 
     def animate(self, dt, distance: float, direction: Vector2) -> None:
+        """Animates the object based on the elapsed time and distance.
+
+        Args:
+            dt (float): The elapsed time since the last frame.
+            distance (float): The distance between the object and the
+                player.
+        """
         super().animate(dt)
 
         if int(self.frame_index) == 6 and self.attacking and not self.bullet_shot:
@@ -128,6 +202,12 @@ class Cactus(Entity, Monster):
                 self.bullet_shot = True
 
     def update(self, dt: float) -> None:
+        """Updates the enemy's state and behavior based on the elapsed
+        time.
+
+        Args:
+            dt (float): The elapsed time since the last update.
+        """
         distance, direction = self.get_player_distance_direction()
 
         if not self.attacking:

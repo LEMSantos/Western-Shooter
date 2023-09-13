@@ -42,6 +42,11 @@ class Bullet(Sprite):
         super().__init__(*groups)
 
     def update(self, dt: float) -> None:
+        """Update the position of the bullet based on the time passed.
+
+        Args:
+            dt (float): The time passed since the last update.
+        """
         self.pos += self.direction * self.speed * dt
         self.rect.center = (round(self.pos.x), round(self.pos.y))
 

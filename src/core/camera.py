@@ -1,11 +1,11 @@
 from operator import attrgetter
-from typing import Iterable, Any, List
+from typing import Iterable, Any
 
 from pygame.rect import Rect
 from pygame.math import Vector2
 from pygame.surface import Surface
 from pygame.image import load as load_image
-from pygame.sprite import AbstractGroup, Group
+from pygame.sprite import AbstractGroup, Sprite, Group
 
 from src.sprites.player import Player
 from settings import WINDOW_HEIGHT, WINDOW_WIDTH
@@ -21,7 +21,7 @@ class Camera(Group):
         self.half_width = WINDOW_WIDTH / 2
         self.half_height = WINDOW_HEIGHT / 2
 
-    def custom_draw(self, surface: Surface, player: Player) -> None:
+    def custom_draw(self, surface: Surface, player: Player) -> list[Rect]:
         """Draws the game screen on the provided surface, centered
         around the player.
 
@@ -37,13 +37,16 @@ class Camera(Group):
         surface.blit(self.bg_surf, -self.offset)
 
         screen_reference = Rect(self.offset, (WINDOW_WIDTH, WINDOW_HEIGHT))
+        to_blit = []
 
         for sprite in self.sprites():
             if screen_reference.colliderect(sprite.rect):
                 offset_pos = sprite.rect.topleft - self.offset
-                surface.blit(sprite.image, offset_pos)
+                to_blit.append((sprite.image, offset_pos))
 
-    def sprites(self) -> List:
+        return surface.blits(to_blit, True)
+
+    def sprites(self) -> list[Sprite]:
         """Return a sorted list of sprites based on their y-coordinate.
 
         Returns:

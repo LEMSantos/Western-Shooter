@@ -216,11 +216,11 @@ class Game:
 
             self.bullet_collision()
 
-            self.groups["all_sprites"].custom_draw(
+            rects_to_update = self.groups["all_sprites"].custom_draw(
                 surface=self.screen,
                 player=self.map["player"],
             )
 
             self.render_fps()
 
-            pygame.display.update()
+            pygame.display.update(rects_to_update)

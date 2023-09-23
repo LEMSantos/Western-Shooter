@@ -2,9 +2,9 @@ import sys
 
 import pygame
 from pytmx.util_pygame import load_pygame
+from pygutils.camera import TopDownCamera
 
 from src.core.event_bus import bus
-from src.core.camera import Camera
 from src.sprites.entity import Entity
 from src.sprites.player import Player
 from src.sprites.enemy import Cactus, Coffin
@@ -28,6 +28,8 @@ class Game:
         pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption(GAME_TITLE)
 
+        self.bg_surf = pygame.image.load("graphics/other/bg.png").convert()
+
         self.screen = pygame.display.get_surface()
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("Arial", 18, bold=True)
@@ -48,7 +50,7 @@ class Game:
 
     def init_groups(self) -> dict[str, pygame.sprite.Group]:
         return {
-            "all_sprites": Camera(),
+            "all_sprites": TopDownCamera(self.bg_surf),
             "obstacles": MappingGroup(TILE_SIZE * 2),
             "bullets": pygame.sprite.Group(),
             "enemies": MappingGroup(TILE_SIZE * 2),
@@ -212,9 +214,9 @@ class Game:
             self.groups["bullets"].update(dt)
             self.groups["health_bar"].update()
 
-            rects_to_update = self.groups["all_sprites"].custom_draw(
+            rects_to_update = self.groups["all_sprites"].draw(
                 surface=self.screen,
-                player=self.map["player"],
+                target=self.map["player"],
             )
 
             self.render_fps()

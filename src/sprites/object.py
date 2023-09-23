@@ -1,9 +1,8 @@
 from pygame.math import Vector2
 from pygame.sprite import Sprite
 from pygame.surface import Surface
+from pygutils.event import EventManager
 from pygame.mask import from_surface as mask_from_surface
-
-from src.core.event_bus import bus
 
 
 class Obstacle(Sprite):
@@ -24,6 +23,7 @@ class Bullet(Sprite):
         "rect",
         "image",
         "speed",
+        "events",
         "direction",
         "start_position",
     )
@@ -31,6 +31,7 @@ class Bullet(Sprite):
     def __init__(
         self, position: tuple[int, int], direction: Vector2, surface: Surface, *groups
     ) -> None:
+        self.events = EventManager()
         self.start_position = position
 
         self.image = surface
@@ -56,4 +57,4 @@ class Bullet(Sprite):
             self.kill()
             return
 
-        bus.emit("bullet:move", bullet=self)
+        self.events.notify("bullet:move", bullet=self)

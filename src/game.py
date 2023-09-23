@@ -4,7 +4,6 @@ import pygame
 from pytmx.util_pygame import load_pygame
 from pygutils.camera import TopDownCamera
 
-from src.core.event_bus import bus
 from src.sprites.entity import Entity
 from src.sprites.player import Player
 from src.sprites.enemy import Cactus, Coffin
@@ -40,8 +39,6 @@ class Game:
         self.bullet_surface = pygame.image.load(
             "graphics/other/particle.png"
         ).convert_alpha()
-
-        self.register_events()
 
         self.sounds = self.init_sounds()
         self.sounds["music"].play(-1)
@@ -99,18 +96,23 @@ class Game:
 
         for obj in tmx_map.get_layer_by_name("Entities"):
             if obj.name == "Player":
-                entities["player"] = Player(
-                    (obj.x, obj.y),
-                    self.groups["all_sprites"],
-                )
+                player = Player((obj.x, obj.y), self.groups["all_sprites"])
+                player.events.subscribe("player:move", self)
+                player.events.subscribe("player:attack", self)
+                player.events.subscribe("received:damage", self)
+
+                entities["player"] = player
 
             if obj.name in enemy_map:
-                enemy_map[obj.name](
-                    (obj.x, obj.y),
-                    entities["player"],
-                    self.groups["all_sprites"],
-                    self.groups["enemies"],
-                )
+                groups = [self.groups["all_sprites"], self.groups["enemies"]]
+                enemy_name = obj.name.lower()
+
+                enemy = enemy_map[obj.name]((obj.x, obj.y), player, groups)
+                enemy.events.subscribe(f"{enemy_name}:move", self)
+                enemy.events.subscribe("received:damage", self)
+
+                if enemy_name == "cactus":
+                    enemy.events.subscribe("cactus:attack", self)
 
         return entities
 
@@ -127,18 +129,6 @@ class Game:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
-    def register_events(self) -> None:
-        bus.on("player:move")(self.collision_entity_obstacles)
-        bus.on("cactus:move")(self.collision_entity_obstacles)
-        bus.on("coffin:move")(self.collision_entity_obstacles)
-
-        bus.on("player:attack")(self.create_bullet)
-        bus.on("cactus:attack")(self.create_bullet)
-
-        bus.on("received:damage")(self.create_health_bar)
-
-        bus.on("bullet:move")(self.bullet_collision)
 
     def collision_entity_obstacles(
         self, entity: Entity, axis: str, direction: pygame.math.Vector2
@@ -182,13 +172,14 @@ class Game:
         self, position: tuple[int, int], direction: pygame.math.Vector2
     ) -> None:
         self.sounds["bullet"].play()
-        Bullet(
+        bullet = Bullet(
             position,
             direction,
             self.bullet_surface,
             self.groups["all_sprites"],
             self.groups["bullets"],
         )
+        bullet.events.subscribe("bullet:move", self)
 
     def create_health_bar(self, entity: Entity) -> None:
         if entity in self.health_bars and self.health_bars[entity].alive():
@@ -203,6 +194,21 @@ class Game:
         fps = str(round(self.clock.get_fps(), 2))
         fps_t = self.font.render(f"FPS: {fps}", 1, pygame.Color("RED"))
         self.screen.blit(fps_t, (10, 10))
+
+    def notify(self, event: str, *args, **kwargs) -> None:
+        match event.split(":"):
+            case ["bullet", "move"]:
+                action = self.bullet_collision
+            case [_, "move"]:
+                action = self.collision_entity_obstacles
+            case [_, "attack"]:
+                action = self.create_bullet
+            case ["received", "damage"]:
+                action = self.create_health_bar
+            case _:
+                return
+
+        action(*args, **kwargs)
 
     def run(self) -> None:
         while True:

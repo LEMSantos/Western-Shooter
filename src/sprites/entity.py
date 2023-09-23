@@ -9,12 +9,13 @@ from pygame.time import get_ticks as get_clock_ticks
 from pygame.mask import from_surface as mask_from_surface
 from pygutils.timer import Timer
 from pygutils.animation import Animation
-
-from src.core.event_bus import bus
+from pygutils.event import EventManager
 
 
 class Entity(Sprite, metaclass=ABCMeta):
     def __init__(self, position: tuple[int, int], assets_path: str, *groups) -> None:
+        self.events = EventManager()
+
         self.animation_speed = 10
         self.assets = self.import_assets(assets_path)
         self.status = "down_idle"
@@ -67,7 +68,7 @@ class Entity(Sprite, metaclass=ABCMeta):
             self.health -= 1
             self.cooldowns["ivulnerable"].activate()
 
-            bus.emit("received:damage", entity=self)
+            self.events.notify("received:damage", entity=self)
 
     def disable_attack(self) -> None:
         self.attacking = False
@@ -120,7 +121,7 @@ class Entity(Sprite, metaclass=ABCMeta):
             self.rect.centerx = round(self.pos.x)
             self.hitbox.centerx = self.rect.centerx
 
-            bus.emit(
+            self.events.notify(
                 f"{entity}:move",
                 entity=self,
                 axis="horizontal",
@@ -132,7 +133,7 @@ class Entity(Sprite, metaclass=ABCMeta):
             self.rect.centery = round(self.pos.y)
             self.hitbox.centery = self.rect.centery
 
-            bus.emit(
+            self.events.notify(
                 f"{entity}:move", entity=self, axis="vertical", direction=self.direction
             )
 

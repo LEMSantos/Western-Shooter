@@ -7,7 +7,6 @@ from pygame import K_LEFT, K_RIGHT, K_DOWN, K_UP, K_SPACE
 from pygutils.timer import Timer
 
 from src.sprites.entity import Entity
-from src.core.event_bus import bus
 
 
 class Player(Entity):
@@ -101,7 +100,9 @@ class Player(Entity):
             bullet_direction = self.__get_shoot_direction()
             bullet_pos = self.rect.center + bullet_direction * 80
 
-            bus.emit("player:attack", position=bullet_pos, direction=bullet_direction)
+            self.events.notify(
+                "player:attack", position=bullet_pos, direction=bullet_direction
+            )
 
             self.bullet_shot = True
 

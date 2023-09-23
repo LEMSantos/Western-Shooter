@@ -93,7 +93,11 @@ class Player(Entity):
         """
         super().animate(dt)
 
-        if int(self.frame_index) == 2 and self.attacking and not self.bullet_shot:
+        if (
+            int(self.current_animation.index) == 2
+            and self.attacking
+            and not self.bullet_shot
+        ):
             bullet_direction = self.__get_shoot_direction()
             bullet_pos = self.rect.center + bullet_direction * 80
 

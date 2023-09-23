@@ -72,13 +72,14 @@ class Monster:
 
 class Coffin(Entity, Monster):
     def __init__(self, position: tuple[int, int], player: Player, *groups) -> None:
+        self.animation_speed = 15
+
         super().__init__(position, "graphics/monster/coffin", *groups)
 
         self.health = 5
         self.max_health = self.health
 
         self.speed = 100
-        self.animation_speed = 15
 
         self.player = player
         self.notice_radius = 550
@@ -120,7 +121,11 @@ class Coffin(Entity, Monster):
         """
         super().animate(dt)
 
-        if int(self.frame_index) == 4 and self.attacking and not self.damage_done:
+        if (
+            int(self.current_animation.index) == 4
+            and self.attacking
+            and not self.damage_done
+        ):
             if distance < self.attack_radius:
                 self.player.damage()
                 self.damage_done = True
@@ -150,10 +155,11 @@ class Coffin(Entity, Monster):
 
 class Cactus(Entity, Monster):
     def __init__(self, position: tuple[int, int], player: Player, *groups) -> None:
+        self.animation_speed = 15
+
         super().__init__(position, "graphics/monster/cactus", *groups)
 
         self.speed = 90
-        self.animation_speed = 15
 
         self.player = player
         self.notice_radius = 600
@@ -194,7 +200,11 @@ class Cactus(Entity, Monster):
         """
         super().animate(dt)
 
-        if int(self.frame_index) == 6 and self.attacking and not self.bullet_shot:
+        if (
+            int(self.current_animation.index) == 6
+            and self.attacking
+            and not self.bullet_shot
+        ):
             if distance < self.attack_radius:
                 bullet_pos = self.rect.center + direction * 80
                 bus.emit("cactus:attack", position=bullet_pos, direction=direction)

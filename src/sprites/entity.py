@@ -3,28 +3,26 @@ from math import sin
 import os
 
 from pygame.math import Vector2
-from pygame.surface import Surface
 from pygame.sprite import Sprite
 from pygame.image import load as load_image
 from pygame.time import get_ticks as get_clock_ticks
 from pygame.mask import from_surface as mask_from_surface
 from pygutils.timer import Timer
+from pygutils.animation import Animation
 
 from src.core.event_bus import bus
-
-_surfaces_cache = {}
 
 
 class Entity(Sprite, metaclass=ABCMeta):
     def __init__(self, position: tuple[int, int], assets_path: str, *groups) -> None:
+        self.animation_speed = 10
         self.assets = self.import_assets(assets_path)
         self.status = "down_idle"
         self.previous_status = self.status
-        self.animation_speed = 10
-        self.frame_index = 0
-        self.previous_frame_index = self.frame_index
+        self.current_animation = self.assets[self.status]
+        self.previous_frame = self.current_animation.next()
 
-        self.image = self.assets[self.status][self.frame_index]
+        self.image = self.current_animation.next()
         self.rect = self.image.get_rect(center=position)
         self.hitbox = self.rect.inflate(-self.rect.width * 0.6, -self.rect.height / 2)
         self.mask = mask_from_surface(self.image)
@@ -71,31 +69,37 @@ class Entity(Sprite, metaclass=ABCMeta):
 
             bus.emit("received:damage", entity=self)
 
-    def import_assets(self, path: str) -> dict[str, list[Surface]]:
+    def disable_attack(self) -> None:
+        self.attacking = False
+
+    def import_assets(self, path: str) -> dict[str, Animation]:
         """Imports assets from the specified path and returns a
-        dictionary mapping animation names to lists of Surfaces.
+        dictionary mapping animation names to Animation objects.
 
         Args:
             path (str): The path to the directory containing the
                 assets.
 
         Returns:
-            dict[str, list[Surface]]: A dictionary mapping animation
-                names to lists of Surfaces.
+            dict[str, Animation]: A dictionary mapping animation
+                names to Animation objects.
         """
-        if path in _surfaces_cache:
-            return _surfaces_cache[path]
-
         animations = {}
 
         for root, dirs, files in os.walk(path):
             if not dirs:
-                animations[root.split("/")[-1]] = [
-                    load_image(f"{root}/{file}").convert_alpha()
-                    for file in sorted(files, key=lambda f: int(f.split(".")[0]))
-                ]
+                name = root.split("/")[-1]
+                is_attack_animation = name.endswith("_attack")
 
-        _surfaces_cache[path] = animations
+                animations[name] = Animation(
+                    [
+                        load_image(f"{root}/{file}").convert_alpha()
+                        for file in sorted(files, key=lambda f: int(f.split(".")[0]))
+                    ],
+                    self.animation_speed,
+                    loop=not is_attack_animation,
+                    on_finish=None if not is_attack_animation else self.disable_attack,
+                )
 
         return animations
 
@@ -138,25 +142,19 @@ class Entity(Sprite, metaclass=ABCMeta):
         Args:
             dt (float): The time delta.
         """
-        animations = self.assets[self.status]
-
-        self.frame_index += self.animation_speed * dt
-        new_frame_index = int(self.frame_index % len(animations))
+        self.current_animation = self.assets[self.status]
+        self.current_animation.update(dt)
 
         if self.previous_status != self.status:
             self.previous_status = self.status
-            self.frame_index = 0
-            new_frame_index = 0
+            self.current_animation.reset()
 
-        if self.attacking and self.frame_index >= len(animations):
-            self.attacking = False
-
-        if new_frame_index == self.previous_frame_index:
+        if self.current_animation.next() == self.previous_frame:
             return
 
-        self.previous_frame_index = new_frame_index
+        self.previous_frame = self.current_animation.next()
 
-        self.image = animations[new_frame_index]
+        self.image = self.current_animation.next()
         self.mask = mask_from_surface(self.image)
 
     @abstractmethod

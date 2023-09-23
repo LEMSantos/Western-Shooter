@@ -20,7 +20,7 @@ class Entity(Sprite, metaclass=ABCMeta):
         self.assets = self.import_assets(assets_path)
         self.status = "down_idle"
         self.previous_status = self.status
-        self.animation_speed = 7
+        self.animation_speed = 10
         self.frame_index = 0
         self.previous_frame_index = self.frame_index
 

@@ -1,6 +1,6 @@
 from pygame.math import Vector2
+from pygutils.timer import Timer
 
-from src.core.timer import Timer
 from src.core.event_bus import bus
 from src.sprites.entity import Entity
 from src.sprites.player import Player

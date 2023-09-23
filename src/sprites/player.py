@@ -4,9 +4,9 @@ from pygame import quit as quit_game
 from pygame.math import Vector2
 from pygame.key import get_pressed as get_pressed_key
 from pygame import K_LEFT, K_RIGHT, K_DOWN, K_UP, K_SPACE
+from pygutils.timer import Timer
 
 from src.sprites.entity import Entity
-from src.core.timer import Timer
 from src.core.event_bus import bus
 
 

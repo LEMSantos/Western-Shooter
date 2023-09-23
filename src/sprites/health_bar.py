@@ -4,8 +4,8 @@ from pygame.sprite import Group
 from pygame.sprite import Sprite
 from pygame.surface import Surface
 from pygame.draw import rect as draw_rect
+from pygutils.timer import Timer
 
-from src.core.timer import Timer
 from src.sprites.entity import Entity
 
 

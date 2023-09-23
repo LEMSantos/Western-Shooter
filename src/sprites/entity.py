@@ -8,8 +8,8 @@ from pygame.sprite import Sprite
 from pygame.image import load as load_image
 from pygame.time import get_ticks as get_clock_ticks
 from pygame.mask import from_surface as mask_from_surface
+from pygutils.timer import Timer
 
-from src.core.timer import Timer
 from src.core.event_bus import bus
 
 _surfaces_cache = {}

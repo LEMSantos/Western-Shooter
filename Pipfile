@@ -8,6 +8,7 @@ pygame = "==2.5.1"
 python-dotenv = "==1.0.0"
 pytmx = "==3.32"
 numpy = "==1.25.2"
+pygutils = "==0.1.0"
 
 [dev-packages]
 

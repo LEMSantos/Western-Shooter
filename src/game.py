@@ -2,7 +2,7 @@ import sys
 
 import pygame
 from pytmx.util_pygame import load_pygame
-from pygutils.camera import TopDownCamera
+from pygutils.camera import Camera2D
 
 from src.sprites.entity import Entity
 from src.sprites.player import Player
@@ -47,7 +47,7 @@ class Game:
 
     def init_groups(self) -> dict[str, pygame.sprite.Group]:
         return {
-            "all_sprites": TopDownCamera(self.bg_surf),
+            "all_sprites": Camera2D(self.bg_surf, 30),
             "obstacles": MappingGroup(TILE_SIZE * 2),
             "bullets": pygame.sprite.Group(),
             "enemies": MappingGroup(TILE_SIZE * 2),
